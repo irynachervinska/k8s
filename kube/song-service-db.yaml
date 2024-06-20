@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: song-db
+  namespace: k8s-program
+spec:
+  serviceName: "song-db"
+  selector:
+    matchLabels:
+      app: song-db
+  template:
+    metadata:
+      namespace: k8s-program
+      labels:
+        app: song-db
+    spec:
+      containers:
+        - name: song-db
+          image: song-db
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: user
+            - name: POSTGRES_PASSWORD
+              value: password
+            - name: POSTGRES_DB
+              value: song
+          volumeMounts:
+            - name: song-db-pvc
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: song-db-pvc
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi

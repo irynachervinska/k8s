@@ -24,6 +24,11 @@ public class ResourceController {
         this.resourceService = resourceService;
     }
 
+    @GetMapping("/test")
+    public ResponseEntity<String> test() {
+        return new ResponseEntity<>("Hello from resource-service", HttpStatus.OK);
+    }
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Long> uploadNewResource(@RequestParam("file") MultipartFile data) throws IOException, TikaException, SAXException {
 
