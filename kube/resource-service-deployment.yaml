@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resource-service-deployment
+  namespace: k8s-program
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resource-service
+  template:
+    metadata:
+      namespace: k8s-program
+      labels:
+        app: resource-service
+    spec:
+      containers:
+        - name: resource-service
+          image: resource-service
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SPRING_APPLICATION_NAME
+              value: resource-service
+            - name: SERVER_PORT
+              value: '8081'
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://resource-db:5433/resource
+            - name: SPRING_DATASOURCE_USERNAME
+              value: user
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: password
+            - name: SPRING_DATASOURCE_DRIVER-CLASS-NAME
+              value: org.postgresql.Driver
+            - name: SPRING_SERVLET_MULTIPART_MAX-FILE-SIZE
+              value: 10MB
+            - name: SPRING_SERVLET_MULTIPART_MAX-REQUEST-SIZE
+              value: 10MB
+            - name: SONG_SERVICE_URL
+              value: http://song-service:8080/songs
+          ports:
+            - containerPort: 8081

@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: song-service-deployment
+  namespace: k8s-program
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: song-service
+  template:
+    metadata:
+      namespace: k8s-program
+      labels:
+        app: song-service
+    spec:
+      containers:
+        - name: song-service
+          image: song-service
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SPRING_APPLICATION_NAME
+              value: song-service
+            - name: SERVER_PORT
+              value: '8080'
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://song-db:5432/song
+            - name: SPRING_DATASOURCE_USERNAME
+              value: user
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: password
+            - name: SPRING_DATASOURCE_DRIVER-CLASS-NAME
+              value: org.postgresql.Driver
+          ports:
+            - containerPort: 8080

@@ -21,6 +21,11 @@ public class SongController {
         this.songService = songService;
     }
 
+    @GetMapping("/test")
+    public ResponseEntity<String> test() {
+        return new ResponseEntity<>("Hello from song-service", HttpStatus.OK);
+    }
+
     @PostMapping
     public ResponseEntity<Long> uploadNewSong(@Valid @RequestBody Song song) {
 
