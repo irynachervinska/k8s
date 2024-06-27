@@ -18,18 +18,42 @@ spec:
         - name: song-service
           image: song-service
           imagePullPolicy: IfNotPresent
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/liveness
+            initialDelaySeconds: 100
+            periodSeconds: 10
+            failureThreshold: 2
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/readiness
+            initialDelaySeconds: 100
+            periodSeconds: 10
+            failureThreshold: 2
+            timeoutSeconds: 5
           env:
-            - name: SPRING_APPLICATION_NAME
-              value: song-service
             - name: SERVER_PORT
-              value: '8080'
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: SERVER_PORT_SONG
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://song-db:5432/song
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: SPRING_DATASOURCE_URL_SONG
             - name: SPRING_DATASOURCE_USERNAME
-              value: user
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: POSTGRES_USER
             - name: SPRING_DATASOURCE_PASSWORD
-              value: password
-            - name: SPRING_DATASOURCE_DRIVER-CLASS-NAME
-              value: org.postgresql.Driver
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: POSTGRES_PASSWORD
           ports:
             - containerPort: 8080

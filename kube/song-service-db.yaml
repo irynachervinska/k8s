@@ -16,20 +16,57 @@ spec:
     spec:
       containers:
         - name: song-db
-          image: song-db
+          image: postgres:13
           imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 5
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 5
           ports:
             - containerPort: 5432
           env:
             - name: POSTGRES_USER
-              value: user
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: POSTGRES_USER
             - name: POSTGRES_PASSWORD
-              value: password
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: POSTGRES_PASSWORD
             - name: POSTGRES_DB
-              value: song
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: POSTGRES_DB_SONG
           volumeMounts:
             - name: song-db-pvc
               mountPath: /var/lib/postgresql/data
+            - name: song-db-init-vol
+              mountPath: /docker-entrypoint-initdb.d/init.sql
+              subPath: INIT_SQL_SONG
+      volumes:
+        - name: song-db-init-vol
+          configMap:
+            name: app-config
+
   volumeClaimTemplates:
     - metadata:
         name: song-db-pvc
