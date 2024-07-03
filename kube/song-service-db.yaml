@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: song-db
-          image: postgres:13
+          image: postgres:16
           imagePullPolicy: IfNotPresent
           livenessProbe:
             exec:

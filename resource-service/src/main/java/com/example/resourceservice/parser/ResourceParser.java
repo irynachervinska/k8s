@@ -22,6 +22,7 @@ public class ResourceParser {
     private static final String ALBUM = "xmpDM:album";
     private static final String DURATION = "xmpDM:duration";
     private static final String YEAR = "xmpDM:releaseDate";
+    private static final String GENRE = "xmpDM:genre";
 
     public Song parse(MultipartFile file, Long resourceId) throws IOException, TikaException, SAXException {
 
@@ -40,6 +41,8 @@ public class ResourceParser {
                 metadata.get(ALBUM),
                 metadata.get(DURATION),
                 metadata.get(YEAR),
-                resourceId);
+                resourceId,
+                metadata.get(GENRE)
+        );
     }
 }

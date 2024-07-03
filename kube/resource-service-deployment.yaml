@@ -8,6 +8,10 @@ spec:
   selector:
     matchLabels:
       app: resource-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
   template:
     metadata:
       namespace: k8s-program
@@ -16,13 +20,13 @@ spec:
     spec:
       containers:
         - name: resource-service
-          image: resource-service
+          image: resource-service:old
           imagePullPolicy: IfNotPresent
           livenessProbe:
             httpGet:
               port: 8081
               path: /actuator/health/liveness
-            initialDelaySeconds: 100
+            initialDelaySeconds: 50
             periodSeconds: 10
             failureThreshold: 2
             timeoutSeconds: 5
@@ -30,35 +34,14 @@ spec:
             httpGet:
               port: 8081
               path: /actuator/health/readiness
-            initialDelaySeconds: 100
+            initialDelaySeconds: 50
             periodSeconds: 10
             failureThreshold: 2
             timeoutSeconds: 5
-          env:
-            - name: SERVER_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: SERVER_PORT_RESOURCE
-            - name: SPRING_DATASOURCE_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: SPRING_DATASOURCE_URL_RESOURCE
-            - name: SONG_SERVICE_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: SONG_SERVICE_URL_RESOURCE
-            - name: SPRING_DATASOURCE_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: app-secret
-                  key: POSTGRES_USER
-            - name: SPRING_DATASOURCE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: app-secret
-                  key: POSTGRES_PASSWORD
+          envFrom:
+            - secretRef:
+                name: app-secret
+            - configMapRef:
+                name: resource-config
           ports:
             - containerPort: 8081
