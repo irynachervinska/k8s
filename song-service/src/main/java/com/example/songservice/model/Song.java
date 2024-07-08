@@ -37,4 +37,7 @@ public class Song {
 
     @Column(name = "resource_id")
     private Long resourceId;
+
+    @Column
+    private String genre;
 }

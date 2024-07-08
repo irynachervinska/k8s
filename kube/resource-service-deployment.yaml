@@ -8,6 +8,10 @@ spec:
   selector:
     matchLabels:
       app: resource-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
   template:
     metadata:
       namespace: k8s-program
@@ -16,26 +20,28 @@ spec:
     spec:
       containers:
         - name: resource-service
-          image: resource-service
+          image: resource-service:old
           imagePullPolicy: IfNotPresent
-          env:
-            - name: SPRING_APPLICATION_NAME
-              value: resource-service
-            - name: SERVER_PORT
-              value: '8081'
-            - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://resource-db:5433/resource
-            - name: SPRING_DATASOURCE_USERNAME
-              value: user
-            - name: SPRING_DATASOURCE_PASSWORD
-              value: password
-            - name: SPRING_DATASOURCE_DRIVER-CLASS-NAME
-              value: org.postgresql.Driver
-            - name: SPRING_SERVLET_MULTIPART_MAX-FILE-SIZE
-              value: 10MB
-            - name: SPRING_SERVLET_MULTIPART_MAX-REQUEST-SIZE
-              value: 10MB
-            - name: SONG_SERVICE_URL
-              value: http://song-service:8080/songs
+          livenessProbe:
+            httpGet:
+              port: 8081
+              path: /actuator/health/liveness
+            initialDelaySeconds: 50
+            periodSeconds: 10
+            failureThreshold: 2
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              port: 8081
+              path: /actuator/health/readiness
+            initialDelaySeconds: 50
+            periodSeconds: 10
+            failureThreshold: 2
+            timeoutSeconds: 5
+          envFrom:
+            - secretRef:
+                name: app-secret
+            - configMapRef:
+                name: resource-config
           ports:
             - containerPort: 8081

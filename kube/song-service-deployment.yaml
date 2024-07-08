@@ -8,6 +8,10 @@ spec:
   selector:
     matchLabels:
       app: song-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
   template:
     metadata:
       namespace: k8s-program
@@ -16,20 +20,28 @@ spec:
     spec:
       containers:
         - name: song-service
-          image: song-service
+          image: song-service:old
           imagePullPolicy: IfNotPresent
-          env:
-            - name: SPRING_APPLICATION_NAME
-              value: song-service
-            - name: SERVER_PORT
-              value: '8080'
-            - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://song-db:5432/song
-            - name: SPRING_DATASOURCE_USERNAME
-              value: user
-            - name: SPRING_DATASOURCE_PASSWORD
-              value: password
-            - name: SPRING_DATASOURCE_DRIVER-CLASS-NAME
-              value: org.postgresql.Driver
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/liveness
+            initialDelaySeconds: 50
+            periodSeconds: 10
+            failureThreshold: 2
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/readiness
+            initialDelaySeconds: 50
+            periodSeconds: 10
+            failureThreshold: 2
+            timeoutSeconds: 5
+          envFrom:
+            - secretRef:
+                name: app-secret
+            - configMapRef:
+                name: song-config
           ports:
             - containerPort: 8080
