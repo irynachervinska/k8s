@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: song-db
+  namespace: {{ .Values.namespace }}
+spec:
+  serviceName: "song-db"
+  selector:
+    matchLabels:
+      app: song-db
+  template:
+    metadata:
+      namespace: {{ .Values.namespace }}
+      labels:
+        app: song-db
+    spec:
+      containers:
+        - name: song-db
+          image: postgres:16
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 5
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 5
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: POSTGRES_DB_SONG
+          volumeMounts:
+            - name: song-db-pvc
+              mountPath: /var/lib/postgresql/data
+            - name: song-db-init-vol
+              mountPath: /docker-entrypoint-initdb.d/init.sql
+              subPath: INIT_SQL_SONG
+      volumes:
+        - name: song-db-init-vol
+          configMap:
+            name: app-config
+
+  volumeClaimTemplates:
+    - metadata:
+        name: song-db-pvc
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi

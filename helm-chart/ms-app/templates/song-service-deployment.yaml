@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: song-service-deployment
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: song-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      namespace: {{ .Values.namespace }}
+      labels:
+        app: song-service
+    spec:
+      containers:
+        - name: song-service
+          image: song-service:old
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/liveness
+            initialDelaySeconds: 50
+            periodSeconds: 10
+            failureThreshold: 2
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/readiness
+            initialDelaySeconds: 50
+            periodSeconds: 10
+            failureThreshold: 2
+            timeoutSeconds: 5
+          envFrom:
+            - secretRef:
+                name: app-secret
+            - configMapRef:
+                name: song-config
+          ports:
+            - containerPort: 8080

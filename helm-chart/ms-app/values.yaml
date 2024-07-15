@@ -1,0 +1,4 @@
+replicaCount: 1
+namespace: k8s-program
+labels:
+  managedBy: Helm

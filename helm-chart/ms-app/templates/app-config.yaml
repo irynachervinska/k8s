@@ -2,7 +2,12 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: resource-config
-  namespace: k8s-program
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ms-app.labels" . | nindent 4 }}
+  annotations:
+    {{- include "ms-app.releaseNameAnnotation" . | nindent 4 }}
+    {{- include "ms-app.releaseNamespaceAnnotation" . | nindent 4 }}
 data:
   SERVER_PORT: "8081"
   SPRING_DATASOURCE_URL: "jdbc:postgresql://resource-db:5433/resource"
@@ -14,7 +19,12 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: song-config
-  namespace: k8s-program
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ms-app.labels" . | nindent 4 }}
+  annotations:
+    {{- include "ms-app.releaseNameAnnotation" . | nindent 4 }}
+    {{- include "ms-app.releaseNamespaceAnnotation" . | nindent 4 }}
 data:
   SERVER_PORT: "8080"
   SPRING_DATASOURCE_URL: "jdbc:postgresql://song-db:5432/song"
@@ -25,7 +35,12 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: app-config
-  namespace: k8s-program
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ms-app.labels" . | nindent 4 }}
+  annotations:
+    {{- include "ms-app.releaseNameAnnotation" . | nindent 4 }}
+    {{- include "ms-app.releaseNamespaceAnnotation" . | nindent 4 }}
 data:
   POSTGRES_DB_RESOURCE: "resource"
   POSTGRES_DB_SONG: "song"
@@ -54,7 +69,14 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: app-secret
-  namespace: k8s-program
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ms-app.labels" . | nindent 4 }}
+  annotations:
+    {{- include "ms-app.releaseNameAnnotation" . | nindent 4 }}
+    {{- include "ms-app.releaseNamespaceAnnotation" . | nindent 4 }}
 data:
   POSTGRES_USER: "dXNlcg=="
   POSTGRES_PASSWORD: "cGFzc3dvcmQ="
+
+

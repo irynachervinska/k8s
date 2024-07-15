@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resource-service-deployment
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: resource-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      namespace: {{ .Values.namespace }}
+      labels:
+        app: resource-service
+    spec:
+      containers:
+        - name: resource-service
+          image: resource-service:old
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            httpGet:
+              port: 8081
+              path: /actuator/health/liveness
+            initialDelaySeconds: 50
+            periodSeconds: 10
+            failureThreshold: 2
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              port: 8081
+              path: /actuator/health/readiness
+            initialDelaySeconds: 50
+            periodSeconds: 10
+            failureThreshold: 2
+            timeoutSeconds: 5
+          envFrom:
+            - secretRef:
+                name: app-secret
+            - configMapRef:
+                name: resource-config
+          ports:
+            - containerPort: 8081
