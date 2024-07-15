@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: resource-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ms-app.labels" . | nindent 4 }}
+  annotations:
+    {{- include "ms-app.releaseNameAnnotation" . | nindent 4 }}
+    {{- include "ms-app.releaseNamespaceAnnotation" . | nindent 4 }}
+data:
+  SERVER_PORT: "8081"
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://resource-db:5433/resource"
+  SPRING_DATASOURCE_USERNAME: "user"
+  SPRING_DATASOURCE_PASSWORD: "password"
+  SONG_SERVICE_URL: "http://song-service:8080/songs"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: song-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ms-app.labels" . | nindent 4 }}
+  annotations:
+    {{- include "ms-app.releaseNameAnnotation" . | nindent 4 }}
+    {{- include "ms-app.releaseNamespaceAnnotation" . | nindent 4 }}
+data:
+  SERVER_PORT: "8080"
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://song-db:5432/song"
+  SPRING_DATASOURCE_USERNAME: "user"
+  SPRING_DATASOURCE_PASSWORD: "password"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ms-app.labels" . | nindent 4 }}
+  annotations:
+    {{- include "ms-app.releaseNameAnnotation" . | nindent 4 }}
+    {{- include "ms-app.releaseNamespaceAnnotation" . | nindent 4 }}
+data:
+  POSTGRES_DB_RESOURCE: "resource"
+  POSTGRES_DB_SONG: "song"
+
+  INIT_SQL_RESOURCE: |
+    CREATE TABLE resource
+    (
+        id   serial not null primary key,
+        data bytea
+    );
+
+  INIT_SQL_SONG: |
+    CREATE TABLE song
+    (
+        id          serial not null primary key,
+        name        varchar,
+        artist      varchar,
+        album       varchar,
+        duration    varchar,
+        resource_id INT    not null,
+        year        varchar,
+        genre       varchar
+    );
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secret
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "ms-app.labels" . | nindent 4 }}
+  annotations:
+    {{- include "ms-app.releaseNameAnnotation" . | nindent 4 }}
+    {{- include "ms-app.releaseNamespaceAnnotation" . | nindent 4 }}
+data:
+  POSTGRES_USER: "dXNlcg=="
+  POSTGRES_PASSWORD: "cGFzc3dvcmQ="
+
+
